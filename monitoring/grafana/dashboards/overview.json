@@ -1,0 +1,1060 @@
+{
+ "title": "Suporte Remoto - Operação",
+ "uid": "suporte-operacao",
+ "schemaVersion": 41,
+ "refresh": "15s",
+ "editable": true,
+ "tags": [
+  "suporte-remoto"
+ ],
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "tenant",
+    "label": "Empresa",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus"
+    },
+    "query": {
+     "query": "label_values(support_active_sessions, tenant)",
+     "refId": "tenant"
+    },
+    "refresh": 2,
+    "includeAll": true,
+    "multi": true,
+    "allValue": ".*",
+    "current": {
+     "text": "All",
+     "value": "$__all"
+    }
+   }
+  ]
+ },
+ "panels": [
+  {
+   "type": "row",
+   "title": "Empresas (filtro: $tenant)",
+   "id": 1,
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 1
+   },
+   "collapsed": false,
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Atendimentos ativos",
+   "id": 2,
+   "gridPos": {
+    "x": 0,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "sum(support_active_sessions{tenant=~\"$tenant\"})",
+     "legendFormat": "ativos",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "WebSockets",
+   "id": 3,
+   "gridPos": {
+    "x": 4,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "sum(support_websocket_peers{tenant=~\"$tenant\"})",
+     "legendFormat": "peers",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Chamadas diretas",
+   "id": 4,
+   "gridPos": {
+    "x": 8,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "sum(support_webrtc_direct_sessions{tenant=~\"$tenant\"})",
+     "legendFormat": "diretas",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Chamadas via TURN",
+   "id": 5,
+   "gridPos": {
+    "x": 12,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "sum(support_webrtc_turn_sessions{tenant=~\"$tenant\"})",
+     "legendFormat": "TURN",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Instâncias online",
+   "id": 6,
+   "gridPos": {
+    "x": 16,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "sum(up{job=\"tenant-app\",tenant=~\"$tenant\"})",
+     "legendFormat": "online",
+     "refId": "A"
+    },
+    {
+     "expr": "count(up{job=\"tenant-app\",tenant=~\"$tenant\"})",
+     "legendFormat": "cadastradas",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Erros HTTP 5xx (1h)",
+   "id": 7,
+   "gridPos": {
+    "x": 20,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "sum(increase(support_http_5xx_total{tenant=~\"$tenant\"}[1h]))",
+     "legendFormat": "5xx",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Atendimentos por empresa",
+   "id": 8,
+   "gridPos": {
+    "x": 0,
+    "y": 5,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "support_active_sessions{tenant=~\"$tenant\"}",
+     "legendFormat": "{{company}} ativos",
+     "refId": "A"
+    },
+    {
+     "expr": "support_waiting_sessions{tenant=~\"$tenant\"}",
+     "legendFormat": "{{company}} aguardando",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "WebSockets por empresa",
+   "id": 9,
+   "gridPos": {
+    "x": 8,
+    "y": 5,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "support_websocket_peers{tenant=~\"$tenant\"}",
+     "legendFormat": "{{company}} salas",
+     "refId": "A"
+    },
+    {
+     "expr": "support_panel_websockets{tenant=~\"$tenant\"}",
+     "legendFormat": "{{company}} painéis",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Rota WebRTC por empresa",
+   "id": 10,
+   "gridPos": {
+    "x": 16,
+    "y": 5,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "support_webrtc_direct_sessions{tenant=~\"$tenant\"}",
+     "legendFormat": "{{company}} direta",
+     "refId": "A"
+    },
+    {
+     "expr": "support_webrtc_turn_sessions{tenant=~\"$tenant\"}",
+     "legendFormat": "{{company}} TURN",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Qualidade das chamadas (Boa / Instável / Ruim)",
+   "id": 11,
+   "gridPos": {
+    "x": 0,
+    "y": 13,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "sum by (company) (support_quality_sessions{quality=\"good\",tenant=~\"$tenant\"})",
+     "legendFormat": "{{company}} boa",
+     "refId": "A"
+    },
+    {
+     "expr": "sum by (company) (support_quality_sessions{quality=\"unstable\",tenant=~\"$tenant\"})",
+     "legendFormat": "{{company}} instável",
+     "refId": "B"
+    },
+    {
+     "expr": "sum by (company) (support_quality_sessions{quality=\"bad\",tenant=~\"$tenant\"})",
+     "legendFormat": "{{company}} ruim",
+     "refId": "C"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Disponibilidade (coleta HTTPS)",
+   "id": 12,
+   "gridPos": {
+    "x": 8,
+    "y": 13,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "up{job=\"tenant-app\",tenant=~\"$tenant\"}",
+     "legendFormat": "{{company}}",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "min": 0,
+     "max": 1
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Reinícios do app (1h) e erros",
+   "id": 13,
+   "gridPos": {
+    "x": 16,
+    "y": 13,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "sum by (company) (changes(support_process_start_time_seconds{tenant=~\"$tenant\"}[1h]))",
+     "legendFormat": "{{company}} reinícios",
+     "refId": "A"
+    },
+    {
+     "expr": "sum by (company) (increase(support_http_5xx_total{tenant=~\"$tenant\"}[1h]))",
+     "legendFormat": "{{company}} 5xx/1h",
+     "refId": "B"
+    },
+    {
+     "expr": "sum by (company) (increase(support_ws_rejected_total{tenant=~\"$tenant\"}[1h]))",
+     "legendFormat": "{{company}} WS recusados/1h",
+     "refId": "C"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "type": "row",
+   "title": "Recursos por stack (containers com label krato.product=suporte-remoto)",
+   "id": 14,
+   "gridPos": {
+    "x": 0,
+    "y": 21,
+    "w": 24,
+    "h": 1
+   },
+   "collapsed": false,
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "CPU por stack (%)",
+   "id": 15,
+   "gridPos": {
+    "x": 0,
+    "y": 22,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "sum by (container_label_com_docker_compose_project) (rate(container_cpu_usage_seconds_total{container_label_krato_product=\"suporte-remoto\",container_label_krato_tenant=~\"$tenant\"}[2m])) * 100",
+     "legendFormat": "{{container_label_com_docker_compose_project}}",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "RAM por stack",
+   "id": 16,
+   "gridPos": {
+    "x": 8,
+    "y": 22,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "sum by (container_label_com_docker_compose_project) (container_memory_working_set_bytes{container_label_krato_product=\"suporte-remoto\",container_label_krato_tenant=~\"$tenant\"})",
+     "legendFormat": "{{container_label_com_docker_compose_project}}",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Rede por stack",
+   "id": 17,
+   "gridPos": {
+    "x": 16,
+    "y": 22,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "sum by (container_label_com_docker_compose_project) (rate(container_network_receive_bytes_total{container_label_krato_product=\"suporte-remoto\",container_label_krato_tenant=~\"$tenant\"}[2m])) * 8",
+     "legendFormat": "{{container_label_com_docker_compose_project}} RX",
+     "refId": "A"
+    },
+    {
+     "expr": "sum by (container_label_com_docker_compose_project) (rate(container_network_transmit_bytes_total{container_label_krato_product=\"suporte-remoto\",container_label_krato_tenant=~\"$tenant\"}[2m])) * 8",
+     "legendFormat": "{{container_label_com_docker_compose_project}} TX",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bps"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "CPU por container (%)",
+   "id": 18,
+   "gridPos": {
+    "x": 0,
+    "y": 30,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "rate(container_cpu_usage_seconds_total{container_label_krato_product=\"suporte-remoto\",container_label_krato_tenant=~\"$tenant\"}[2m]) * 100",
+     "legendFormat": "{{name}}",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "RAM por container",
+   "id": 19,
+   "gridPos": {
+    "x": 12,
+    "y": 30,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "container_memory_working_set_bytes{container_label_krato_product=\"suporte-remoto\",container_label_krato_tenant=~\"$tenant\"}",
+     "legendFormat": "{{name}}",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Reinícios de container (1h)",
+   "id": 20,
+   "gridPos": {
+    "x": 0,
+    "y": 38,
+    "w": 24,
+    "h": 6
+   },
+   "targets": [
+    {
+     "expr": "increase(container_restart_count{container_label_krato_product=\"suporte-remoto\",container_label_krato_tenant=~\"$tenant\"}[1h])",
+     "legendFormat": "{{name}}",
+     "refId": "A"
+    },
+    {
+     "expr": "changes(container_start_time_seconds{container_label_krato_product=\"suporte-remoto\",container_label_krato_tenant=~\"$tenant\"}[1h])",
+     "legendFormat": "{{name}} (start time)",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "type": "row",
+   "title": "VPS (node-exporter)",
+   "id": 21,
+   "gridPos": {
+    "x": 0,
+    "y": 44,
+    "w": 24,
+    "h": 1
+   },
+   "collapsed": false,
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "CPU da VPS",
+   "id": 22,
+   "gridPos": {
+    "x": 0,
+    "y": 45,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "100 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[2m])) * 100",
+     "legendFormat": "cpu",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "RAM usada",
+   "id": 23,
+   "gridPos": {
+    "x": 4,
+    "y": 45,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100",
+     "legendFormat": "ram",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Disco / usado",
+   "id": 24,
+   "gridPos": {
+    "x": 8,
+    "y": 45,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "(1 - node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"}) * 100",
+     "legendFormat": "disco",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Containers rodando",
+   "id": 25,
+   "gridPos": {
+    "x": 12,
+    "y": 45,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "docker_exporter_containers_running",
+     "legendFormat": "containers",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Load 5 min",
+   "id": 26,
+   "gridPos": {
+    "x": 16,
+    "y": 45,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "node_load5",
+     "legendFormat": "load",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Uptime da VPS",
+   "id": 27,
+   "gridPos": {
+    "x": 20,
+    "y": 45,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "expr": "time() - node_boot_time_seconds",
+     "legendFormat": "uptime",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "CPU da VPS por modo (%)",
+   "id": 28,
+   "gridPos": {
+    "x": 0,
+    "y": 49,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "sum by (mode) (rate(node_cpu_seconds_total{mode!=\"idle\"}[2m])) * 100 / count(node_cpu_seconds_total{mode=\"idle\"})",
+     "legendFormat": "{{mode}}",
+     "refId": "A"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Memória da VPS",
+   "id": 29,
+   "gridPos": {
+    "x": 8,
+    "y": 49,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
+     "legendFormat": "usada",
+     "refId": "A"
+    },
+    {
+     "expr": "node_memory_MemTotal_bytes",
+     "legendFormat": "total",
+     "refId": "B"
+    },
+    {
+     "expr": "node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes",
+     "legendFormat": "swap usado",
+     "refId": "C"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Rede total da VPS",
+   "id": 30,
+   "gridPos": {
+    "x": 16,
+    "y": 49,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "sum(rate(node_network_receive_bytes_total{device!~\"lo|docker.*|veth.*|br-.*\"}[2m])) * 8",
+     "legendFormat": "RX",
+     "refId": "A"
+    },
+    {
+     "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"lo|docker.*|veth.*|br-.*\"}[2m])) * 8",
+     "legendFormat": "TX",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bps"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Disco da VPS",
+   "id": 31,
+   "gridPos": {
+    "x": 0,
+    "y": 57,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "node_filesystem_size_bytes{mountpoint=\"/\"} - node_filesystem_avail_bytes{mountpoint=\"/\"}",
+     "legendFormat": "usado",
+     "refId": "A"
+    },
+    {
+     "expr": "node_filesystem_size_bytes{mountpoint=\"/\"}",
+     "legendFormat": "total",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Containers por estado",
+   "id": 32,
+   "gridPos": {
+    "x": 12,
+    "y": 57,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "expr": "docker_exporter_containers_running",
+     "legendFormat": "rodando",
+     "refId": "A"
+    },
+    {
+     "expr": "count(container_last_seen{container_label_krato_product=\"suporte-remoto\"})",
+     "legendFormat": "suporte-remoto",
+     "refId": "B"
+    }
+   ],
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  }
+ ]
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Krato Support Control</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23177a55'/%3E%3Ctext x='32' y='44' font-family='Inter,Arial,sans-serif' font-size='36' font-weight='700' fill='white' text-anchor='middle'%3EK%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#177a55">
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#16252b;background:#f4f7f6}body{margin:0}.wrap{max-width:1180px;margin:auto;padding:28px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}h1{margin:0;font-size:28px}small{color:#66777e}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:22px}.card{background:white;border:1px solid #dfe8e4;border-radius:14px;padding:20px;box-shadow:0 5px 18px #0b312408}
+label{display:block;font-size:12px;font-weight:700;margin:13px 0 5px}input{box-sizing:border-box;width:100%;padding:11px;border:1px solid #cddbd5;border-radius:8px}
+button{border:0;border-radius:8px;padding:11px 15px;background:#177a55;color:white;font-weight:700;cursor:pointer}button.secondary{background:#e7f2ed;color:#176345}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #e8eeeb;font-size:13px}.status{font-weight:700}.active{color:#168258}.error{color:#b84040}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.metric{background:#f4f7f6;border-radius:8px;padding:9px}.metric b{display:block;font-size:18px}
+.notice{padding:10px;border-radius:8px;margin:12px 0;background:#fff5cc}.danger{background:#ffe7e7;color:#923a3a}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}table{display:block;overflow:auto}}
+</style>
+</head>
+<body><div class="wrap">
+<header><div><h1>Krato Support Control</h1><small>Clientes isolados · provisionamento · monitoramento</small></div><div><span id="who" style="font-size:12px;color:#66777e;margin-right:10px"></span><button class="secondary" onclick="load()">Atualizar</button> <a id="logout" class="secondary" href="/logout" style="display:none;text-decoration:none;padding:11px 15px;border-radius:8px;background:#e7f2ed;color:#176345;font-weight:700">Sair</a></div></header>
+<div class="grid">
+<section class="card"><h2>Novo cliente</h2><p><small>Cria stack, banco, Redis, volumes e domínio do cliente.</small></p>
+<form id="form">
+<label>Empresa</label><input name="company_name" required placeholder="Ex.: ACME Máquinas">
+<label>Slug</label><input name="slug" placeholder="acme (opcional)">
+<label>Domínio próprio</label><input name="domain" placeholder="vazio = slug.suporte.krato.ai">
+<label>E-mail do administrador</label><input name="admin_email" type="email" required>
+<button style="margin-top:16px;width:100%">Criar e instalar</button>
+</form><div id="result"></div></section>
+<section class="card"><h2>Instalações</h2><div id="customers">Carregando…</div></section>
+</div></div>
+<script>
+async function api(url,opt={}){const r=await fetch(url,opt);const j=await r.json().catch(()=>({detail:'Erro'}));if(!r.ok)throw new Error(j.detail||'Erro');return j}
+async function load(){
+ const rows=await api('/api/customers');const host=document.getElementById('customers');
+ if(!rows.length){host.innerHTML='<p>Nenhum cliente cadastrado.</p>';return}
+ host.innerHTML='<table><thead><tr><th>Empresa</th><th>Domínio</th><th>Status</th><th>Métricas</th><th></th></tr></thead><tbody>'+
+ rows.map(r=>'<tr><td><b>'+esc(r.company_name)+'</b><br><small>'+esc(r.stack_name)+'</small></td><td><a target="_blank" href="https://'+esc(r.domain)+'">'+esc(r.domain)+'</a></td><td class="status '+esc(r.status)+'">'+esc(r.status)+'</td><td id="m-'+r.id+'">—</td><td><button class="secondary" onclick="redeploy(\''+r.id+'\')">Redeploy</button></td></tr>').join('')+'</tbody></table>';
+ rows.forEach(async r=>{try{const m=await api('/api/customers/'+r.id+'/monitor');document.getElementById('m-'+r.id).innerHTML='<div class="metrics"><div class="metric"><small>Ativos</small><b>'+m.active_sessions+'</b></div><div class="metric"><small>CPU</small><b>'+m.cpu_percent+'%</b></div><div class="metric"><small>RAM</small><b>'+m.memory_mb+' MB</b></div><div class="metric"><small>WS</small><b>'+m.websocket_peers+'</b></div><div class="metric"><small>TURN / Direta</small><b>'+m.turn_sessions+' / '+m.direct_sessions+'</b></div><div class="metric"><small>Rede</small><b>'+m.network_tx_mbps+' Mb/s</b></div><div class="metric"><small>Qualidade B/I/R</small><b>'+m.quality.good+'/'+m.quality.unstable+'/'+m.quality.bad+'</b></div><div class="metric"><small>Coleta</small><b class="'+(m.online?'active':'error')+'">'+(m.online?'online':'offline')+'</b></div></div>'}catch{}})
+}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function redeploy(id){try{await api('/api/customers/'+id+'/redeploy',{method:'POST'});alert('Redeploy solicitado.');load()}catch(e){alert(e.message)}}
+document.getElementById('form').onsubmit=async e=>{e.preventDefault();const out=document.getElementById('result');out.innerHTML='<div class="notice">Criando stack…</div>';const data=Object.fromEntries(new FormData(e.target));try{const r=await api('/api/customers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});out.innerHTML='<div class="notice"><b>Cliente criado.</b><br>URL: https://'+esc(r.domain)+'<br><b>Senha inicial:</b> '+esc(r.initial_admin_password)+'<br><small>Guarde esta senha agora; ela não volta a aparecer.</small></div>';e.target.reset();load()}catch(err){out.innerHTML='<div class="notice danger">'+esc(err.message)+'</div>'}}
+load();setInterval(load,30000);
+api('/api/me').then(m=>{document.getElementById('who').textContent=m.user;if(m.auth_mode==='authentik')document.getElementById('logout').style.display='inline-block'}).catch(()=>{});
+</script></body></html>

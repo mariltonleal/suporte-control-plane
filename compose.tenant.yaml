@@ -1,0 +1,115 @@
+name: ${STACK_NAME}
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      APP_ORIGIN: ${APP_ORIGIN}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      TURN_SECRET: ${TURN_SECRET}
+      TURN_HOST: ${TURN_HOST}
+      METRICS_TOKEN: ${METRICS_TOKEN}
+      DATABASE_URL: postgresql://support:${POSTGRES_PASSWORD}@db:5432/support
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      PHOTOS_DIR: /data/photos
+    volumes:
+      - photos:/data/photos
+    networks:
+      - internal
+      - proxy
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NETWORK:-traefik}"
+      - 'traefik.http.routers.${ROUTER_NAME}.rule=Host(`${APP_HOST}`)'
+      - "traefik.http.routers.${ROUTER_NAME}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.${ROUTER_NAME}.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      - "traefik.http.services.${ROUTER_NAME}.loadbalancer.server.port=8000"
+      - "krato.product=suporte-remoto"
+      - "krato.tenant=${TENANT_SLUG}"
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    mem_limit: ${APP_MEMORY_LIMIT:-768m}
+    cpus: ${APP_CPU_LIMIT:-1.5}
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    logging: &default-logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: support
+      POSTGRES_USER: support
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - database:/var/lib/postgresql/data
+    networks: [internal]
+    labels:
+      - "krato.product=suporte-remoto"
+      - "krato.tenant=${TENANT_SLUG}"
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U support -d support"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: ${DB_MEMORY_LIMIT:-512m}
+    cpus: ${DB_CPU_LIMIT:-1}
+    logging: *default-logging
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["sh","-c","exec redis-server --appendonly yes --requirepass \"$REDIS_PASSWORD\""]
+    volumes:
+      - redis_data:/data
+    networks: [internal]
+    labels:
+      - "krato.product=suporte-remoto"
+      - "krato.tenant=${TENANT_SLUG}"
+    healthcheck:
+      test: ["CMD-SHELL","redis-cli -a \"$REDIS_PASSWORD\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: ${REDIS_MEMORY_LIMIT:-256m}
+    cpus: ${REDIS_CPU_LIMIT:-0.5}
+    logging: *default-logging
+
+volumes:
+  database:
+    name: ${DATABASE_VOLUME}
+  photos:
+    name: ${PHOTOS_VOLUME}
+  redis_data:
+    name: ${REDIS_VOLUME}
+
+networks:
+  internal:
+    name: ${INTERNAL_NETWORK}
+    internal: true
+    ipam:
+      config:
+        - subnet: ${INTERNAL_SUBNET}
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-traefik}
