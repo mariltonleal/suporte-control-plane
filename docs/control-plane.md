@@ -1,3 +1,9 @@
+# LEGADO
+
+Este arquivo pertence ao snapshot `mariltonleal/suporte-control-plane`.
+A documentação vigente está em `mariltonleal/suporte-remoto/docs/control-plane.md`.
+Não use este repositório para produção.
+
 # Control Plane e monitoramento
 
 Este conjunto adiciona uma camada central para administrar várias instalações **single-tenant**
